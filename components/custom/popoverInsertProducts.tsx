@@ -4,6 +4,13 @@ import {
     PopoverContent,
     PopoverTrigger,
   } from "@/components/ui/popover";
+  import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select"
 
   
 import { ArrowUpFromLine, BadgePlus, Edit } from "lucide-react";
@@ -23,7 +30,6 @@ export interface Category {
   name: string;
 }
 
-const jsonString = '[{"id": "123", "name": "John Doe" },{{"id": "1234", "name": "test"}]';
 
 const CustomPopoverInsertProduct =  ({ supabase,rehydrateProducts }: {supabase: SupabaseClient,rehydrateProducts:Function}) =>  {
     const [submitted,setSumbitted]=useState<boolean>(false);
@@ -41,7 +47,7 @@ const CustomPopoverInsertProduct =  ({ supabase,rehydrateProducts }: {supabase: 
     
         if (data) {
           setCategory(data);
-          console.log(data);
+        //  console.log(data);
         }
     
         if (error) {
@@ -66,16 +72,19 @@ const CustomPopoverInsertProduct =  ({ supabase,rehydrateProducts }: {supabase: 
           price: Yup.number()
             .min(1, 'Must be 1 or above')
             .required('Required'),
-        unit: Yup.string()
-            .max(300, 'Must be less than 300 characters')
-            .max(1000,'Must be less than 1000 characters'),
+          unit: Yup.string()
+              .max(300, 'Must be less than 300 characters')
+              .max(1000,'Must be less than 1000 characters'),
+          category: Yup.string()      
+              .oneOf(Category.map((cat) => cat.id))
+              .required(),
         });
 
         const insertProductIntoDatabase=async (value:any) =>{
             
           const { error } = await supabase
             .from('Product')
-            .insert({  name: value.name,description :value.description,price:value.price,unit:value.unit}) ;
+            .insert({  name: value.name,description :value.description,price:value.price,unit:value.unit,id_category:value.category}) ;
 
             if (error) {
               console.error('Error inserting data:', error);
@@ -101,7 +110,7 @@ const CustomPopoverInsertProduct =  ({ supabase,rehydrateProducts }: {supabase: 
       </PopoverTrigger>               
       <PopoverContent className="w-100 max-h-80 overflow-y-auto">
       <Formik
-       initialValues={{ name: '', description: '', price: 0, unit: ''}}
+       initialValues={{ name: '', description: '', price: 0, unit: '',category:''}}
        onSubmit={(values, actions) => {
         console.log(values);
         /* setTimeout(() => {
@@ -119,7 +128,17 @@ const CustomPopoverInsertProduct =  ({ supabase,rehydrateProducts }: {supabase: 
             <CustomFields label="Description" name="description" type="text" placeholder="Description"/>
             <CustomFields label="Price" name="price" type="number" placeholder="Price"/>
             <CustomFields label="unit" name="unit" type="text" placeholder="Unit"/>
-            <CustomSelect label="Category" name="category" option ={jsonString} />
+            {Category &&
+             <CustomSelect label="category" name="category">
+              
+              <option value="" disabled defaultValue=''>Choose one pls</option>
+                {Category.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}                    
+            </CustomSelect>
+            }
                 <Button type="submit">Submit {submitted && <ArrowUpFromLine />}</Button>                                    
          </form>
        )}

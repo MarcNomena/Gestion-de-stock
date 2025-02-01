@@ -13,14 +13,25 @@ import {
 } from "@/components/ui/table"
 import CustomPopover from '@/components/custom/popovercontent';
 import { useEffect, useState,useCallback } from 'react';
-import { SupabaseClient } from '@supabase/supabase-js';
-import PopoverInsertProducts from '@/components/custom/popoverInsertProducts';
+import { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js';
 import CustomPopoverInsertProduct from '@/components/custom/popoverInsertProducts';
+import CustomPagination from '@/components/custom/CustomPagination';
 
+import ResearchFields from '@/components/custom/ResearchFields';
+
+interface SearchTask {
+  text:string,
+  field:string
+  }
+  
 
 const ProductPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const [ProductCount,setProductCount]=useState<number|null>();
+  const [page,setPage]=useState<number>(1);
+  const [searchParams,setSearchParams]=useState<SearchTask>();
+  const [resetPage,setResetPage]= useState<boolean>(false);
 
   const createSupabaseClient = useCallback(async () => {
     const supabase = await createClient();
@@ -28,32 +39,98 @@ const ProductPage = () => {
    
   }, []);
 
-  const fetchProducts = useCallback(async () => {
+  const incrementPage=(number:number)=>{
+    setPage(number);
+  }
 
+  const getSearchParams=(value:SearchTask)=>{
+    try{
+      setSearchParams(value);
+      setPage(1);
+    //  console.log("search params :",value);
+    }catch( error){
+      console.log(value);
+      alert(error)
+    }
+   
+  }
+
+
+  const countProduct = useCallback(async () => {
     if (!supabase) {
-      console.error('Supabase client is not initialized');
+  //    console.error('Supabase client is not initialized');
       return;
     }
-    const { data: productlist, error } = await supabase
-      .from('Product')
-      .select(`id,name,description,price,unit,Category(name)`);
+   // const { data, error } = await supabase.rpc('get_product_count');
+   const { count, error } = await supabase
+   .from('Product')
+   .select('*', {
+     head: true, // 👈 No data returned
+     count: 'exact'
+   });
+   //console.log(count);
 
-    if (productlist) {
-      setProducts(productlist);
-     console.log(productlist);
-    }
+      if(count){
+     //  console.log(data);
+       setProductCount(count);
+      }
+      if(error){
+        console.log(error);
+      }
 
-    if (error) {
-      console.error('Error fetching data:', error);
+  },[supabase]);
+
+  const fetchProducts = useCallback(async (searchParameter:SearchTask| undefined) => {
+    try{
+          if (!supabase) {      
+            throw "Supabase client is not initialized";
+          }
+          
+        
+          
+       let query =  supabase
+            .from('Product')
+            .select(`id,name,description,price,unit,Category(name)`,{count:'exact'})            
+
+            let from = (page -1)*5;
+            let to = (page*5)-1 ; 
+
+            if(searchParameter){
+              query=query.ilike(searchParameter.field,`%${searchParameter.text}%`);
+            }
+    
+            const { data: productlist, error ,count} = await query.range(from,to) 
+
+            if (productlist) {
+                setResetPage(true);
+                setProductCount(count);
+                setProducts(productlist);
+              }
+      
+          if (error) {
+            console.error('Error fetching data:', error);
+            throw (error);
+          }
+
+    }catch(error){
+        alert(error);
     }
-  }, [supabase]);
+   
+  }, [supabase,page]);
 
   useEffect(() => {
  
     if (supabase) {
-      fetchProducts();
+      countProduct();
     }
-  }, [supabase, fetchProducts]);
+  }, [supabase, countProduct]);
+
+  useEffect(() => {
+ 
+    if (supabase) {
+      fetchProducts(searchParams);
+    }
+  }, [supabase, fetchProducts,searchParams]);
 
   useEffect(() => {
 
@@ -69,8 +146,9 @@ const ProductPage = () => {
   return (
     <div>
 
-
-      
+    <ResearchFields SendSearchParams={getSearchParams}/>
+   
+      <br/>
        <Table >
        <TableCaption> {supabase && <CustomPopoverInsertProduct  supabase={supabase} rehydrateProducts={fetchProducts}/>} </TableCaption>
        <TableHeader>
@@ -99,8 +177,8 @@ const ProductPage = () => {
           ))}
        </TableBody>
      </Table>
-     
-       
+   <CustomPagination productLength={ProductCount} handleChangePage={incrementPage} ParentPage={page}/>
+
       
     </div>
   

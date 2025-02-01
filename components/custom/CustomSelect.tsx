@@ -8,46 +8,38 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select"
+import { useEffect, useState } from "react";
 
 interface CustomFieldsProps {
     label: string;
-    option: string;
     [key: string]: any;
 }
 
-interface Product {
+interface Category {
     id: string;
     name: string;
 }
 
-const CustomSelect = ({ label,option, ...props }: CustomFieldsProps) => {
+const CustomSelect = ({ label, ...props }: CustomFieldsProps) => {
     const [field, meta] = useField(props);
-    const person = ["light","dark","system"];
-   // const parsedOptions = JSON.parse(option);
+    const [category,setCategory]=useState<Category[]>([]);
 
-  //  console.log(parsedOptions);
+    const list=[{id:'1',name:'test'},{id:'2',name:'aha'},]
+
   
     return (
         <div>
             <div className="grid w-full max-w-sm items-center gap-1.5" style={{marginBlock:"10px"}}>
                 <Label htmlFor="Name">{label} </Label>
+                <select  {...field} {...props}>
+              
+                </select>
 
-                <Select {...field} {...props} >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Theme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {option && person.map((item :any, index:number) => (
-                            <SelectItem key={index} value={item}>{item}</SelectItem>
-                        ))}
-                         
-                        
-                    </SelectContent>
-                </Select>
 
                 {meta.touched && meta.error && <div className="input-error" style={{color:"red",content:"justify"}}>{meta.error} </div>}
             </div>
-        </div>
+            </div>
+          
     );
 }
 export default CustomSelect;
