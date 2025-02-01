@@ -92,6 +92,8 @@ const ProductPage = () => {
             .from('Product')
             .select(`id,name,description,price,unit,Category(name)`,{count:'exact'})            
 
+
+            
             let from = (page -1)*5;
             let to = (page*5)-1 ; 
 

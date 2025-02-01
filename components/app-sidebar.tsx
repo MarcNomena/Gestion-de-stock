@@ -1,5 +1,5 @@
 "use client"
-
+import {useUser} from "@/app/protected/context"
 import * as React from "react"
 import {
   AudioWaveform,
@@ -28,11 +28,7 @@ import {
 
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  
   teams: [
   ],
   navMain: [
@@ -81,6 +77,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user=useUser()
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -91,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser  />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
