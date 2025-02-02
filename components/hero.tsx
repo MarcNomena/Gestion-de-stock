@@ -17,7 +17,7 @@ export default function Header() {
           <NextLogo />
         </a>
       </div>
-      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
+      <h1 className="sr-only"></h1>
       <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">
        ESTIAM Project build with {" "}
         <a
@@ -38,6 +38,7 @@ export default function Header() {
           Next.js
         </a>
       </p>
+      gestion de stock
       <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
     </div>
   );
